@@ -31,7 +31,7 @@ export default function App() {
 
       {/* Props komponent */}
       <View style={{flex: 1, backgroundColor: 'gray', alignItems: 'center', justifyContent: 'center', width: '100%'}}>
-        <PropsComponent name="React Native Elev" />
+        <PropsComponent name="Martin" />
       </View>
 
       <StatusBar style="auto" />

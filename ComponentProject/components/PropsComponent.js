@@ -4,7 +4,7 @@ import { Text, View } from 'react-native';
 const PropsComponent = ({ name }) => {
   return (
     <View>
-      <Text>Made by {name}</Text>
+      <Text>Made byn {name}</Text>
     </View>
   );
 };
