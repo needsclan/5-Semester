@@ -84,16 +84,17 @@ export default StyleSheet.create({
 galleryImageFlex: {
   flex: 1,
   width: "100%",
-  resizeMode: "contain",   // brug "cover" hvis du vil undgå sorte kanter
+  resizeMode: "contain",   // brug "cover" hvis du vil undgå sorte kanter (kan beskære)
   backgroundColor: "#000",
 },
 galleryInfoBar: {
   width: "100%",
   height: 96,
-  backgroundColor: "#111",
+  backgroundColor: "blue", // 👈 test
   alignItems: "center",
   justifyContent: "center",
 },
+
 galleryInfoTitle: { color: "#fff", fontSize: 18, fontWeight: "600" },
 galleryInfoRating:{ color: "#fff", fontSize: 14 },
 
