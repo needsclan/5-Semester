@@ -81,25 +81,36 @@ export default StyleSheet.create({
     borderRadius: 16,
     marginBottom: 12
   },
-galleryImageFlex: {
-  flex: 1,
-  width: "100%",
-  resizeMode: "contain",   // brug "cover" hvis du vil undgå sorte kanter (kan beskære)
-  backgroundColor: "#000",
-},
-galleryInfoBar: {
-  width: "100%",
-  height: 96,
-  backgroundColor: "blue", // 👈 test
-  alignItems: "center",
-  justifyContent: "center",
-},
+  galleryImageFlex: {
+    flex: 1,
+    width: "100%",
+    resizeMode: "contain",   // brug "cover" hvis du vil undgå sorte kanter (kan beskære)
+    backgroundColor: "#000",
+  },
+  galleryInfoBar: {
+    width: "95%",
+    height: 96,
+    backgroundColor: "#1e3a8a", // mørk blå
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+  },
 
-galleryInfoTitle: { color: "#fff", fontSize: 18, fontWeight: "600" },
-galleryInfoRating:{ color: "#fff", fontSize: 14 },
+  galleryInfoTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 4
+  },
 
-
-
-
-
-});
+  galleryInfoRating: {
+    color: "#e0e7ff",
+    fontSize: 14
+  }})
