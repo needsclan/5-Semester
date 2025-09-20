@@ -113,4 +113,23 @@ export default StyleSheet.create({
   galleryInfoRating: {
     color: "#e0e7ff",
     fontSize: 14
-  }})
+  },  containerWhite: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  scrollContainer: {
+    alignItems: "center",
+    paddingBottom: 32,
+  },
+  historyRow: {
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderColor: "#eee",
+  },
+  historyText: {
+    fontWeight: "600",
+  },
+  historyDate: {
+    color: "#666",
+    fontSize: 12,
+  },})

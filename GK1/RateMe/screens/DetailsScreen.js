@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { SafeAreaView, View, Text, Image, FlatList, ScrollView } from "react-native";
+import {View, Text, Image, FlatList, ScrollView } from "react-native";
 import styles from "../styles/styles";
 import { IMAGES } from "../data/images";
 import { useRatings } from "../context/RatingsContext";
@@ -17,31 +17,31 @@ export default function DetailsScreen({ route }) {
     [imageId, getHistory]
   );
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <ScrollView contentContainerStyle={{ alignItems: "center", paddingBottom: 32 }}>
-        <Image source={{ uri: image.url }} style={styles.detailImage} />
-        <Text style={styles.title}>{image.title}</Text>
-        <Text style={styles.subtitle}>Gns: {average}/5 – Din: {current || 0}/5</Text>
+return (
+  <View style={styles.containerWhite}>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <Image source={{ uri: image.url }} style={styles.detailImage} />
+      <Text style={styles.title}>{image.title}</Text>
+      <Text style={styles.subtitle}>
+        Gns: {average}/5 – Din: {current || 0}/5
+      </Text>
 
-        <StarRating value={current} onChange={(val) => setRating(image.id, val)} size={34} />
+      <StarRating value={current} onChange={(val) => setRating(image.id, val)} size={34} />
 
-        <Text style={[styles.subtitle, { marginTop: 16 }]}>Din historik:</Text>
-        <FlatList
-          data={rows}
-          keyExtractor={(item, idx) => String(item.ts) + idx}
-          style={{ width: "92%" }}
-          scrollEnabled={false}
-          renderItem={({ item }) => (
-            <View style={{ paddingVertical: 8, borderBottomWidth: 1, borderColor: "#eee" }}>
-              <Text style={{ fontWeight: "600" }}>{item.value}/5</Text>
-              <Text style={{ color: "#666", fontSize: 12 }}>
-                {new Date(item.ts).toLocaleString()}
-              </Text>
-            </View>
-          )}
-        />
-      </ScrollView>
-    </SafeAreaView>
-  );
+      <Text style={[styles.subtitle, { marginTop: 16 }]}>Din historik:</Text>
+      <FlatList
+        data={rows}
+        keyExtractor={(item, idx) => String(item.ts) + idx}
+        style={{ width: "92%" }}
+        scrollEnabled={false}
+        renderItem={({ item }) => (
+          <View style={styles.historyRow}>
+            <Text style={styles.historyText}>{item.value}/5</Text>
+            <Text style={styles.historyDate}>{new Date(item.ts).toLocaleString()}</Text>
+          </View>
+        )}
+      />
+    </ScrollView>
+  </View>
+);
 }

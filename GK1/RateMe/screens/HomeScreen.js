@@ -1,6 +1,7 @@
 import React from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text } from "react-native";
 import styles from "../styles/styles";
+import CustomButton from "../components/ButtonComponent";
 
 export default function HomeScreen({ navigation }) {
   return (
@@ -8,21 +9,17 @@ export default function HomeScreen({ navigation }) {
       <Text style={styles.title}>RateMyPics</Text>
       <Text style={styles.subtitle}>Rate billeder med stjerner ⭐</Text>
 
-      {/* Knap 1: Navigerer */}
-      <Pressable
-        style={[styles.button, styles.buttonPrimary]}
+      <CustomButton
+        label="Gå til Galleri"
+        type="primary"
         onPress={() => navigation.navigate("Gallery")}
-      >
-        <Text style={styles.buttonText}>Gå til Galleri</Text>
-      </Pressable>
+      />
 
-      {/* Knap 2: Dummy handling */}
-      <Pressable
-        style={[styles.button, styles.buttonGhost]}
+      <CustomButton
+        label="Upload (dummy)"
+        type="ghost"
         onPress={() => alert("Upload kommer snart 🤞")}
-      >
-        <Text style={styles.buttonTextGhost}>Upload (dummy)</Text>
-      </Pressable>
+      />
     </View>
   );
 }
