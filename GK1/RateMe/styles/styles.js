@@ -109,7 +109,7 @@ export default StyleSheet.create({
     fontWeight: "700",
     marginBottom: 4
   },
-
+//Details screen
   galleryInfoRating: {
     color: "#e0e7ff",
     fontSize: 14
