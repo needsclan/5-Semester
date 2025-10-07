@@ -1,4 +1,3 @@
-// screens/EditCVScreen.js
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, Image } from "react-native";
 import GlobalStyles from "../style/GlobalStyle";
@@ -9,11 +8,13 @@ import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function EditCVScreen() {
+  // state til tekst og billede
   const [cv, setCv] = useState("");
-  const [photoUri, setPhotoUri] = useState(null); // kan være file:// eller https://
+  const [photoUri, setPhotoUri] = useState(null); // kan være lokal file:// eller en https:// url
   const uid = auth.currentUser?.uid;
 
   useEffect(() => {
+    // henter eksisterende cv-data fra realtime database
     const load = async () => {
       try {
         if (!uid) return;
@@ -21,7 +22,7 @@ export default function EditCVScreen() {
         if (snap.exists()) {
           const data = snap.val();
           setCv(data.text ?? "");
-          if (data.photoUrl) setPhotoUri(data.photoUrl); // hent URL fra DB
+          if (data.photoUrl) setPhotoUri(data.photoUrl); // gemt billede fra tidligere
         }
       } catch (e) {
         console.log("CV load error:", e.code || e.message);
@@ -30,6 +31,7 @@ export default function EditCVScreen() {
     load();
   }, [uid]);
 
+  // viser en alert så brugeren kan vælge kamera eller galleri
   const chooseImage = () => {
     Alert.alert("Profilbillede", "Vælg hvordan du vil tilføje et billede", [
       { text: "Kamera", onPress: openCamera },
@@ -38,6 +40,7 @@ export default function EditCVScreen() {
     ]);
   };
 
+  // åbner kamera via expo-image-picker
   const openCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
@@ -51,6 +54,7 @@ export default function EditCVScreen() {
     if (!result.canceled) setPhotoUri(result.assets[0].uri);
   };
 
+  // åbner billedgalleri via expo-image-picker
   const openGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -64,25 +68,21 @@ export default function EditCVScreen() {
     if (!result.canceled) setPhotoUri(result.assets[0].uri);
   };
 
-  // --- Upload til Storage med korrekt contentType og stabil sti ---
+  // uploader billede til firebase storage og returnerer en download url
   const uploadImageAsync = async (uri, userId) => {
-    // hent fil som blob
     const res = await fetch(uri);
     const blob = await res.blob();
 
-    const type = blob.type || "image/jpeg";      // fx image/jpeg, image/png, image/heic
-    const ext = type.split("/")[1] || "jpg";     // "jpeg" | "png" | "heic" ...
+    const type = blob.type || "image/jpeg";   // finder filtype
+    const ext = type.split("/")[1] || "jpg"; // finder filendelse
 
-    // brug mappe pr. bruger -> undgår problemer med dots i rules
     const storageRef = sref(storage, `avatars/${userId}/profile.${ext}`);
 
-    // sørg for contentType
     await uploadBytes(storageRef, blob, { contentType: type });
-
-    // hent offentlig URL
     return await getDownloadURL(storageRef);
   };
 
+  // gemmer cv-tekst og evt billede til realtime database og storage
   const handleSave = async () => {
     try {
       if (!uid) {
@@ -92,10 +92,8 @@ export default function EditCVScreen() {
 
       let photoUrl = null;
       if (photoUri?.startsWith("file://")) {
-        // lokalt billede -> upload til Storage
         photoUrl = await uploadImageAsync(photoUri, uid);
       } else if (photoUri?.startsWith("http")) {
-        // allerede en URL (fra tidligere gemt)
         photoUrl = photoUri;
       }
 
@@ -116,7 +114,7 @@ export default function EditCVScreen() {
     <View style={GlobalStyles.container}>
       <Text style={GlobalStyles.title}>Rediger dit CV</Text>
 
-      {/* Klikbart billede / placeholder */}
+      {/* klikbart billede eller placeholder */}
       <TouchableOpacity onPress={chooseImage}>
         {photoUri ? (
           <Image
@@ -140,6 +138,7 @@ export default function EditCVScreen() {
         )}
       </TouchableOpacity>
 
+      {/* tekstfelt til cv-tekst */}
       <TextInput
         placeholder="Skriv dit CV her…"
         placeholderTextColor="#888"
@@ -149,6 +148,7 @@ export default function EditCVScreen() {
         multiline
       />
 
+      {/* gem-knap */}
       <TouchableOpacity style={GlobalStyles.button} onPress={handleSave}>
         <Text style={GlobalStyles.buttonText}>Gem CV</Text>
       </TouchableOpacity>

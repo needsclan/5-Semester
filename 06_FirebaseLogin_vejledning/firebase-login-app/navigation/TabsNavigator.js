@@ -17,6 +17,7 @@ export default function TabsNavigator() {
       initialRouteName="SwipeCV"
       screenOptions={{ headerShown: false }}
     >
+      {/* fanen til at swipe igennem andres cv'er */}
       <Tab.Screen
         name="SwipeCV"
         component={SwipeCVScreen}
@@ -28,6 +29,7 @@ export default function TabsNavigator() {
         }}
       />
 
+      {/* fanen til at redigere eget cv */}
       <Tab.Screen
         name="EditCV"
         component={EditCVScreen}
@@ -39,6 +41,7 @@ export default function TabsNavigator() {
         }}
       />
 
+      {/* logout-fane, som logger brugeren ud af firebase */}
       <Tab.Screen
         name="Logout"
         component={DummyScreen}
@@ -47,6 +50,7 @@ export default function TabsNavigator() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="log-out-outline" size={size} color={color} />
           ),
+          // knappen erstattes af en custom knap som kalder signOut
           tabBarButton: (props) => (
             <TouchableOpacity
               {...props}
@@ -65,6 +69,7 @@ export default function TabsNavigator() {
   );
 }
 
+// bruges kun som placeholder til logout-fanen
 function DummyScreen() {
   return null;
 }

@@ -5,9 +5,11 @@ import { auth } from "../database/database";
 import GlobalStyles from "../style/GlobalStyle";
 
 export default function Login() {
+  // state til email og kodeord
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // funktion til at logge bruger ind via firebase auth
   const handleLogin = async () => {
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
@@ -19,7 +21,10 @@ export default function Login() {
 
   return (
     <View>
+      {/* overskrift */}
       <Text style={GlobalStyles.title}>Login</Text>
+
+      {/* inputfelt til email */}
       <TextInput
         placeholder="Email"
         style={GlobalStyles.input}
@@ -29,6 +34,8 @@ export default function Login() {
         keyboardType="email-address"
         placeholderTextColor="#888"
       />
+
+      {/* inputfelt til kodeord */}
       <TextInput
         placeholder="Kodeord"
         style={GlobalStyles.input}
@@ -37,6 +44,8 @@ export default function Login() {
         secureTextEntry
         placeholderTextColor="#888"
       />
+
+      {/* knap til login */}
       <TouchableOpacity style={GlobalStyles.button} onPress={handleLogin}>
         <Text style={GlobalStyles.buttonText}>Login</Text>
       </TouchableOpacity>

@@ -6,16 +6,21 @@ import { rtdb, auth } from "../database/database";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 export default function SwipeCVScreen() {
+  // State til at gemme CV'er
   const [cvs, setCvs] = useState([]);
-  const tabBarHeight = useBottomTabBarHeight();       // 👈 hook skal være herinde
-  const { width, height } = useWindowDimensions();    // 👈 reagerer på rotation
+  // Højde på tab bar, bruges til at placere overlay
+  const tabBarHeight = useBottomTabBarHeight();
+  // Skærmens bredde og højde, bruges til at gøre FlatList slides fullscreen
+  const { width, height } = useWindowDimensions();
 
   useEffect(() => {
+    // Henter CV'er fra Firebase Realtime Database
     const loadCVs = async () => {
       try {
         const snapshot = await get(child(ref(rtdb), "cvs"));
         if (snapshot.exists()) {
           const data = snapshot.val();
+          // Filtrerer det aktuelle brugers CV fra og laver array af de øvrige
           const others = Object.entries(data)
             .filter(([uid]) => uid !== auth.currentUser?.uid)
             .map(([uid, val]) => ({ uid, ...val }));
@@ -28,6 +33,7 @@ export default function SwipeCVScreen() {
     loadCVs();
   }, []);
 
+  // Viser tekst, hvis der ikke findes nogen CV'er
   if (cvs.length === 0) {
     return (
       <View style={[GlobalStyles.container, { backgroundColor: "black" }]}>
@@ -36,6 +42,7 @@ export default function SwipeCVScreen() {
     );
   }
 
+  // Viser CV'er i en FlatList, der kan swipes horisontalt
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <FlatList
@@ -48,17 +55,18 @@ export default function SwipeCVScreen() {
         renderItem={({ item }) => (
           <View style={{ width, height }}>
             {item.photoUrl ? (
+              // Hvis CV'et har et billede, bruges det som baggrund
               <ImageBackground
                 source={{ uri: item.photoUrl }}
                 style={{ width, height }}
                 resizeMode="cover"
               >
+                {/* Overlay med tekst nederst på billedet */}
                 <View
                   style={{
                     position: "absolute",
                     left: 0,
                     right: 0,
-                    // 🔽 løft overlay over tab-baren
                     bottom: tabBarHeight + 16,
                     padding: 20,
                     backgroundColor: "rgba(0,0,0,0.35)",
@@ -73,6 +81,7 @@ export default function SwipeCVScreen() {
                 </View>
               </ImageBackground>
             ) : (
+              // Hvis der ikke er billede, vises en sort baggrund
               <View
                 style={{
                   width,
@@ -84,12 +93,12 @@ export default function SwipeCVScreen() {
                 }}
               >
                 <Text style={{ color: "#aaa", marginBottom: 12 }}>Ingen billede</Text>
+                {/* Overlay med tekst også her */}
                 <View
                   style={{
                     position: "absolute",
                     left: 0,
                     right: 0,
-                    // 🔽 samme her
                     bottom: tabBarHeight + 16,
                     padding: 20,
                     backgroundColor: "rgba(0,0,0,0.35)",
