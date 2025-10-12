@@ -1,4 +1,3 @@
-// navigation/TabsNavigator.js
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { TouchableOpacity } from "react-native";
@@ -6,21 +5,19 @@ import { signOut } from "firebase/auth";
 import { auth } from "../database/database";
 import { Ionicons } from "@expo/vector-icons";
 
-import SwipeCVScreen from "../screens/SwipeCVScreen";
+import SwipeStack from "./SwipeStack";          // ⬅️ brug stacken
 import EditCVScreen from "../screens/EditCVScreen";
+// import SwipeCVScreen from "../screens/SwipeCVScreen"; // ⬅️ fjern denne
 
 const Tab = createBottomTabNavigator();
 
 export default function TabsNavigator() {
   return (
-    <Tab.Navigator
-      initialRouteName="SwipeCV"
-      screenOptions={{ headerShown: false }}
-    >
-      {/* fanen til at swipe igennem andres cv'er */}
+    <Tab.Navigator initialRouteName="SwipeCV" screenOptions={{ headerShown: false }}>
+      {/* Swipe-fanen bruger nu en stack */}
       <Tab.Screen
         name="SwipeCV"
-        component={SwipeCVScreen}
+        component={SwipeStack}               // ⬅️ her!
         options={{
           title: "Swipe",
           tabBarIcon: ({ color, size }) => (
@@ -29,7 +26,6 @@ export default function TabsNavigator() {
         }}
       />
 
-      {/* fanen til at redigere eget cv */}
       <Tab.Screen
         name="EditCV"
         component={EditCVScreen}
@@ -41,7 +37,6 @@ export default function TabsNavigator() {
         }}
       />
 
-      {/* logout-fane, som logger brugeren ud af firebase */}
       <Tab.Screen
         name="Logout"
         component={DummyScreen}
@@ -50,16 +45,11 @@ export default function TabsNavigator() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="log-out-outline" size={size} color={color} />
           ),
-          // knappen erstattes af en custom knap som kalder signOut
           tabBarButton: (props) => (
             <TouchableOpacity
               {...props}
               onPress={async () => {
-                try {
-                  await signOut(auth);
-                } catch (e) {
-                  console.error("Logout fejlede:", e.message);
-                }
+                try { await signOut(auth); } catch (e) { console.error("Logout fejlede:", e.message); }
               }}
             />
           ),
@@ -69,7 +59,4 @@ export default function TabsNavigator() {
   );
 }
 
-// bruges kun som placeholder til logout-fanen
-function DummyScreen() {
-  return null;
-}
+function DummyScreen() { return null; }

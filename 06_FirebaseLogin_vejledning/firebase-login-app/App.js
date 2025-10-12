@@ -1,31 +1,28 @@
-// App.js
 import React, { useEffect, useState } from "react";
-import { NavigationContainer } from "@react-navigation/native"; 
-import { createNativeStackNavigator } from "@react-navigation/native-stack"; 
-import { onAuthStateChanged } from "firebase/auth"; 
-import { auth } from "./database/database"; 
-import AuthScreen from "./screens/AuthScreen"; 
-import TabsNavigator from "./navigation/TabsNavigator"; // faneblade til hoved-appen
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./database/database";
+
+import AuthScreen from "./screens/AuthScreen";
+import TabsNavigator from "./navigation/TabsNavigator";
+import CVDetailScreen from "./screens/CVDetailScreen";
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
-  const [user, setUser] = useState(null); // gemmer om brugeren er logget ind
+  const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    // tjekker automatisk om brugeren er logget ind eller ej
-    const unsub = onAuthStateChanged(auth, setUser);
-    return unsub; // rydder op når komponenten lukker
-  }, []);
+  useEffect(() => onAuthStateChanged(auth, setUser), []);
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {user ? ( 
-          // Hvis brugeren er logget ind → vis hoved-appen med faner
-          <Stack.Screen name="AppTabs" component={TabsNavigator} />
-        ) : ( 
-          // Hvis ikke logget ind → vis login/registrering
+      <Stack.Navigator id="RootStack" screenOptions={{ headerShown: false }}>
+        {user ? (
+          <Stack.Group>
+            <Stack.Screen name="AppTabs" component={TabsNavigator} />
+          </Stack.Group>
+        ) : (
           <Stack.Screen name="Auth" component={AuthScreen} />
         )}
       </Stack.Navigator>
