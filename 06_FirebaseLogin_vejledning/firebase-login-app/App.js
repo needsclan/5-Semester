@@ -6,14 +6,18 @@ import { auth } from "./database/database";
 
 import AuthScreen from "./screens/AuthScreen";
 import TabsNavigator from "./navigation/TabsNavigator";
-import CVDetailScreen from "./screens/CVDetailScreen";
+import { seedCVs } from "./seed";
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [user, setUser] = useState(null);
 
-  useEffect(() => onAuthStateChanged(auth, setUser), []);
+  useEffect(() => {
+    onAuthStateChanged(auth, setUser);
+    
+    
+  }, []);
 
   return (
     <NavigationContainer>
