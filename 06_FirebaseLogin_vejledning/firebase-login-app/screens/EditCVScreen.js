@@ -45,6 +45,10 @@ export default function EditCVScreen() {
     yearsExp, setYearsExp,
     availability, setAvailability,
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+    // remoteOk fjernet
+>>>>>>> Stashed changes
 =======
     // remoteOk fjernet
 >>>>>>> Stashed changes
@@ -56,6 +60,7 @@ export default function EditCVScreen() {
 
   if (loading) return <Text>Henter...</Text>;
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
   // — Billedevalg via ImagePicker —
   const chooseImage = () => {
@@ -93,12 +98,17 @@ export default function EditCVScreen() {
       text,
       photoUri, // hook uploader hvis file://, ellers gemmer url
 =======
+=======
+>>>>>>> Stashed changes
   // Saml og normaliser payload før gem
   const onSave = () => {
     const payload = {
       headline: (headline || "").trim(),   // kort titel på kortet
       text,                                 // summary/fritekst
       photoUri,
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
       region,
       educationLevel,
@@ -109,6 +119,10 @@ export default function EditCVScreen() {
       skills: inputToArr(skills),
       languages: inputToArr(languages),
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+      // evt. keywords/searchText/embedding genereres i hook/CF
+>>>>>>> Stashed changes
 =======
       // evt. keywords/searchText/embedding genereres i hook/CF
 >>>>>>> Stashed changes
