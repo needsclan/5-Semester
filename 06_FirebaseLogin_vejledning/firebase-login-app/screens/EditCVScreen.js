@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useLayoutEffect } from "react";
 import {
   View,
   Text,
@@ -30,13 +30,11 @@ const inputToArr = (s) =>
     .map((x) => x.trim())
     .filter(Boolean);
 
-export default function EditCVScreen() {
+export default function EditCVScreen({ navigation }) {
   const uid = auth.currentUser?.uid ?? null;
 
   const {
-    // NYT: headline
     headline, setHeadline,
-
     text, setText,
     photoUri, setPhotoUri,
     region, setRegion,
@@ -50,7 +48,41 @@ export default function EditCVScreen() {
     loading, saving, error, save,
   } = useUserCv(uid);
 
-  if (loading) return <Text>Henter...</Text>;
+  // — Gem: normaliser og send til hook —
+  const onSave = () => {
+    const payload = {
+      headline: (headline || "").trim(),
+      text,
+      photoUri, // hook uploader hvis file://, ellers gemmer url
+      region,
+      educationLevel,
+      availability,
+      age: age ? Number(age) : null,
+      yearsExp: yearsExp ? Number(yearsExp) : null,
+      salaryMin: salaryMin ? Number(salaryMin) : null,
+      skills: inputToArr(skills),
+      languages: inputToArr(languages),
+    };
+    save(payload);
+  };
+
+  // Header: lille "Gem" knap i højre side
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: "Rediger CV",
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={onSave}
+          disabled={saving || loading}
+          style={{ marginRight: 12, opacity: saving || loading ? 0.6 : 1 }}
+        >
+          <Text style={{ fontWeight: "700" }}>{saving ? "Gemmer…" : "Gem"}</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, saving, loading, headline, text, photoUri, region, educationLevel, availability, age, yearsExp, salaryMin, skills, languages]);
+
+  if (loading) return <Text style={{ padding: 16 }}>Henter…</Text>;
 
   // — Billedevalg via ImagePicker —
   const chooseImage = () => {
@@ -81,24 +113,6 @@ export default function EditCVScreen() {
     if (!result.canceled) setPhotoUri(result.assets[0].uri);
   };
 
-  // — Gem: normaliser og send til hook —
-  const onSave = () => {
-    const payload = {
-      headline: (headline || "").trim(),
-      text,
-      photoUri, // hook uploader hvis file://, ellers gemmer url
-      region,
-      educationLevel,
-      availability,
-      age: age ? Number(age) : null,
-      yearsExp: yearsExp ? Number(yearsExp) : null,
-      salaryMin: salaryMin ? Number(salaryMin) : null,
-      skills: inputToArr(skills),
-      languages: inputToArr(languages),
-    };
-    save(payload);
-  };
-
   return (
     <KeyboardAvoidingView
       style={GlobalStyles.container}
@@ -109,42 +123,42 @@ export default function EditCVScreen() {
         contentContainerStyle={GlobalStyles.scrollContainer}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={GlobalStyles.title}>Rediger dit CV</Text>
+        {/* Topkort med billede + headline */}
+        <View style={{ alignItems: "center", marginBottom: 12 }}>
+          <TouchableOpacity onPress={chooseImage}>
+            {photoUri ? (
+              <Image
+                source={{ uri: photoUri }}
+                style={{ width: 140, height: 140, borderRadius: 8, marginBottom: 8 }}
+              />
+            ) : (
+              <View
+                style={{
+                  width: 140,
+                  height: 140,
+                  borderRadius: 8,
+                  marginBottom: 8,
+                  backgroundColor: "#eee",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons name="camera-outline" size={40} color="#666" />
+              </View>
+            )}
+          </TouchableOpacity>
 
-        {/* Klikbart billede eller placeholder */}
-        <TouchableOpacity onPress={chooseImage} style={{ alignSelf: "center" }}>
-          {photoUri ? (
-            <Image
-              source={{ uri: photoUri }}
-              style={{ width: 140, height: 140, borderRadius: 8, marginBottom: 12 }}
-            />
-          ) : (
-            <View
-              style={{
-                width: 140,
-                height: 140,
-                borderRadius: 8,
-                marginBottom: 12,
-                backgroundColor: "#eee",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Ionicons name="camera-outline" size={40} color="#666" />
-            </View>
-          )}
-        </TouchableOpacity>
-
-        {/* Headline (kort titel) */}
-        <TextInput
-          placeholder="Headline (fx: Frontend udvikler, Dataanalytiker)"
-          placeholderTextColor="#888"
-          style={GlobalStyles.input}
-          value={headline}
-          onChangeText={setHeadline}
-        />
+          <TextInput
+            placeholder="Headline (fx: Frontend udvikler, Dataanalytiker)"
+            placeholderTextColor="#888"
+            style={[GlobalStyles.input, { width: "100%" }]}
+            value={headline}
+            onChangeText={setHeadline}
+          />
+        </View>
 
         {/* Fritekst / summary */}
+        <Text style={{ fontWeight: "700", marginBottom: 6 }}>Profil</Text>
         <TextInput
           placeholder="Kort profil/summary…"
           placeholderTextColor="#888"
@@ -155,7 +169,7 @@ export default function EditCVScreen() {
         />
 
         {/* Region */}
-        <Text>Region</Text>
+        <Text style={{ fontWeight: "700", marginTop: 12 }}>Region</Text>
         <View style={[GlobalStyles.input, { padding: 0 }]}>
           <Picker selectedValue={region} onValueChange={setRegion}>
             {DK_REGIONS.map((r) => (
@@ -165,7 +179,7 @@ export default function EditCVScreen() {
         </View>
 
         {/* Uddannelse */}
-        <Text>Uddannelsesniveau</Text>
+        <Text style={{ fontWeight: "700", marginTop: 12 }}>Uddannelsesniveau</Text>
         <View style={[GlobalStyles.input, { padding: 0 }]}>
           <Picker selectedValue={educationLevel} onValueChange={setEducationLevel}>
             {EDU_LEVELS.map((e) => (
@@ -175,6 +189,7 @@ export default function EditCVScreen() {
         </View>
 
         {/* Alder + erfaring */}
+        <Text style={{ fontWeight: "700", marginTop: 12 }}>Alder & erfaring</Text>
         <TextInput
           placeholder="Alder (år)"
           keyboardType="number-pad"
@@ -191,7 +206,7 @@ export default function EditCVScreen() {
         />
 
         {/* Tilgængelighed */}
-        <Text>Tilgængelighed</Text>
+        <Text style={{ fontWeight: "700", marginTop: 12 }}>Tilgængelighed</Text>
         <View style={[GlobalStyles.input, { padding: 0 }]}>
           <Picker selectedValue={availability} onValueChange={setAvailability}>
             {AVAIL.map((a) => (
@@ -200,7 +215,8 @@ export default function EditCVScreen() {
           </Picker>
         </View>
 
-        {/* Skills + sprog (kommasepareret i UI) */}
+        {/* Skills + sprog */}
+        <Text style={{ fontWeight: "700", marginTop: 12 }}>Skills & sprog</Text>
         <TextInput
           placeholder="Skills (kommasepareret, fx: JavaScript, React, Firebase)"
           style={GlobalStyles.input}
@@ -215,6 +231,7 @@ export default function EditCVScreen() {
         />
 
         {/* Løn */}
+        <Text style={{ fontWeight: "700", marginTop: 12 }}>Løn</Text>
         <TextInput
           placeholder="Ønsket min. løn (DKK/mdr)"
           keyboardType="number-pad"
@@ -223,11 +240,10 @@ export default function EditCVScreen() {
           onChangeText={setSalaryMin}
         />
 
-        <TouchableOpacity style={GlobalStyles.button} onPress={onSave} disabled={saving}>
-          <Text style={GlobalStyles.buttonText}>{saving ? "Gemmer..." : "Gem CV"}</Text>
-        </TouchableOpacity>
-
         {!!error && <Text style={{ color: "red", marginTop: 8 }}>{error}</Text>}
+
+        {/* Ingen stor bundknap – “Gem” ligger i headeren */}
+        <View style={{ height: 24 }} />
       </ScrollView>
     </KeyboardAvoidingView>
   );

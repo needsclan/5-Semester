@@ -1,19 +1,28 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../database/database";
+import { ref, set } from "firebase/database";
+import { auth, rtdb } from "../database/database";
 import GlobalStyles from "../style/GlobalStyle";
 
 export default function Signup() {
-  // state til email og kodeord
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
 
-  // funktion til at oprette ny bruger i firebase auth
   const handleSignup = async () => {
     try {
-      await createUserWithEmailAndPassword(auth, email.trim(), password);
-      Alert.alert("Bruger oprettet!");
+      const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      const uid = cred.user.uid;
+
+      // gem username i RTDB
+      await set(ref(rtdb, `users/${uid}`), {
+        username: username.trim(),
+        email: email.trim(),
+        createdAt: Date.now(),
+      });
+
+      Alert.alert("Bruger oprettet!", `Velkommen, ${username}`);
     } catch (error) {
       Alert.alert("Fejl", error.message);
     }
@@ -21,10 +30,19 @@ export default function Signup() {
 
   return (
     <View>
-      {/* overskrift */}
       <Text style={GlobalStyles.title}>Opret bruger</Text>
 
-      {/* inputfelt til email */}
+      {/* Brugernavn */}
+      <TextInput
+        placeholder="Brugernavn"
+        style={GlobalStyles.input}
+        value={username}
+        onChangeText={setUsername}
+        autoCapitalize="none"
+        placeholderTextColor="#888"
+      />
+
+      {/* Email */}
       <TextInput
         placeholder="Email"
         style={GlobalStyles.input}
@@ -35,7 +53,7 @@ export default function Signup() {
         placeholderTextColor="#888"
       />
 
-      {/* inputfelt til kodeord */}
+      {/* Kodeord */}
       <TextInput
         placeholder="Kodeord"
         style={GlobalStyles.input}
@@ -45,7 +63,6 @@ export default function Signup() {
         placeholderTextColor="#888"
       />
 
-      {/* knap til at oprette bruger */}
       <TouchableOpacity style={GlobalStyles.button} onPress={handleSignup}>
         <Text style={GlobalStyles.buttonText}>Opret bruger</Text>
       </TouchableOpacity>

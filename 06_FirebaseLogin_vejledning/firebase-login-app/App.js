@@ -6,7 +6,7 @@ import { auth } from "./database/database";
 
 import AuthScreen from "./screens/AuthScreen";
 import TabsNavigator from "./navigation/TabsNavigator";
-import { seedCVs } from "./seed";
+
 
 const Stack = createNativeStackNavigator();
 
