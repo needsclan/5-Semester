@@ -47,6 +47,10 @@ export default function EditCVScreen() {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+    // remoteOk fjernet
+>>>>>>> Stashed changes
 =======
     // remoteOk fjernet
 >>>>>>> Stashed changes
@@ -64,6 +68,7 @@ export default function EditCVScreen() {
 
   if (loading) return <Text>Henter...</Text>;
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
@@ -107,6 +112,8 @@ export default function EditCVScreen() {
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
   // Saml og normaliser payload før gem
   const onSave = () => {
     const payload = {
@@ -115,6 +122,9 @@ export default function EditCVScreen() {
       photoUri,
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -131,6 +141,10 @@ export default function EditCVScreen() {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+      // evt. keywords/searchText/embedding genereres i hook/CF
+>>>>>>> Stashed changes
 =======
       // evt. keywords/searchText/embedding genereres i hook/CF
 >>>>>>> Stashed changes
