@@ -44,26 +44,6 @@ export default function EditCVScreen() {
     age, setAge,
     yearsExp, setYearsExp,
     availability, setAvailability,
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-    // remoteOk fjernet
->>>>>>> Stashed changes
-=======
-    // remoteOk fjernet
->>>>>>> Stashed changes
-=======
-    // remoteOk fjernet
->>>>>>> Stashed changes
-=======
-    // remoteOk fjernet
->>>>>>> Stashed changes
-=======
-    // remoteOk fjernet
->>>>>>> Stashed changes
     skills, setSkills,
     languages, setLanguages,
     salaryMin, setSalaryMin,
@@ -72,11 +52,6 @@ export default function EditCVScreen() {
 
   if (loading) return <Text>Henter...</Text>;
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
   // — Billedevalg via ImagePicker —
   const chooseImage = () => {
     Alert.alert("Profilbillede", "Vælg hvordan du vil tilføje et billede", [
@@ -112,34 +87,6 @@ export default function EditCVScreen() {
       headline: (headline || "").trim(),
       text,
       photoUri, // hook uploader hvis file://, ellers gemmer url
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-  // Saml og normaliser payload før gem
-  const onSave = () => {
-    const payload = {
-      headline: (headline || "").trim(),   // kort titel på kortet
-      text,                                 // summary/fritekst
-      photoUri,
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
       region,
       educationLevel,
       availability,
@@ -148,26 +95,6 @@ export default function EditCVScreen() {
       salaryMin: salaryMin ? Number(salaryMin) : null,
       skills: inputToArr(skills),
       languages: inputToArr(languages),
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-      // evt. keywords/searchText/embedding genereres i hook/CF
->>>>>>> Stashed changes
-=======
-      // evt. keywords/searchText/embedding genereres i hook/CF
->>>>>>> Stashed changes
-=======
-      // evt. keywords/searchText/embedding genereres i hook/CF
->>>>>>> Stashed changes
-=======
-      // evt. keywords/searchText/embedding genereres i hook/CF
->>>>>>> Stashed changes
-=======
-      // evt. keywords/searchText/embedding genereres i hook/CF
->>>>>>> Stashed changes
     };
     save(payload);
   };
