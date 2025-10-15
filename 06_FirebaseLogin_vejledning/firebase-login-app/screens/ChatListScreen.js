@@ -1,8 +1,9 @@
 // screens/ChatListScreen.js
-import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, FlatList } from "react-native";
-import { ref, onValue, query, orderByChild } from "firebase/database";
+import React, { useEffect, useState, useCallback } from "react";
+import { FlatList, Text } from "react-native";
+import { ref, onValue, query, orderByChild, get, remove } from "firebase/database";
 import { rtdb, auth } from "../database/database";
+import ChatListItem from "../components/ChatListItem";
 
 export default function ChatListScreen({ navigation }) {
   const uid = auth.currentUser?.uid;
@@ -16,7 +17,7 @@ export default function ChatListScreen({ navigation }) {
       const arr = Object.entries(val).map(([chatId, v]) => ({
         chatId,
         otherUid: v.otherUid,
-        otherUsername: v.otherUsername || v.otheruid || v.otherUid, // fallback
+        otherUsername: v.otherUsername || v.otheruid || v.otherUid,
         lastMessage: v.lastMessage || "",
         updatedAt: v.updatedAt || 0,
       }));
@@ -26,9 +27,27 @@ export default function ChatListScreen({ navigation }) {
     return () => off();
   }, [uid]);
 
-  const open = (chatId, otherUid, otherUsername) => {
-    navigation.navigate("Chat", { chatId, otherUid, otherUsername });
-  };
+  const open = useCallback((it) => {
+    navigation.navigate("Chat", {
+      chatId: it.chatId,
+      otherUid: it.otherUid,
+      otherUsername: it.otherUsername,
+    });
+  }, [navigation]);
+
+  const deleteChat = useCallback(async (it) => {
+    if (!uid) return;
+    const { chatId, otherUid } = it;
+
+    // Fjern din reference
+    await remove(ref(rtdb, `userChats/${uid}/${chatId}`));
+
+    // Hvis modparten ikke længere har chatten → ryd beskederne
+    const otherSnap = await get(ref(rtdb, `userChats/${otherUid}/${chatId}`));
+    if (!otherSnap.exists()) {
+      await remove(ref(rtdb, `messages/${chatId}`));
+    }
+  }, [uid]);
 
   if (!uid) return <Text style={{ padding: 16 }}>Login kræves</Text>;
   if (!items.length) return <Text style={{ padding: 16 }}>Ingen beskeder endnu</Text>;
@@ -36,28 +55,9 @@ export default function ChatListScreen({ navigation }) {
   return (
     <FlatList
       data={items}
-      keyExtractor={(it) => it.chatId}
+      keyExtractor={(it) => String(it.chatId)}
       renderItem={({ item }) => (
-        <TouchableOpacity
-          onPress={() => open(item.chatId, item.otherUid, item.otherUsername)}
-          style={{ padding: 16, borderBottomWidth: 1, borderColor: "#eee", flexDirection: "row", alignItems: "center", gap: 12 }}
-        >
-          {/* Lille avatar med initialer (valgfrit) */}
-          <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: "#eee", alignItems: "center", justifyContent: "center" }}>
-            <Text style={{ fontWeight: "700" }}>
-              {item.otherUsername?.slice(0,1)?.toUpperCase() || "?"}
-            </Text>
-          </View>
-
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontWeight: "700" }}>
-              {item.otherUsername || item.otherUid}
-            </Text>
-            <Text style={{ color: "#666" }} numberOfLines={1}>
-              {item.lastMessage || "…"}
-            </Text>
-          </View>
-        </TouchableOpacity>
+        <ChatListItem item={item} onPress={open} onDelete={deleteChat} />
       )}
     />
   );

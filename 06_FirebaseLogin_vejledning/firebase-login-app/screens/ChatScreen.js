@@ -1,5 +1,5 @@
 // screens/ChatScreen.js
-import React, { useEffect, useState, useCallback, useLayoutEffect } from "react";
+import React, { useEffect, useState, useCallback, useLayoutEffect, useRef } from "react";
 import {
   View, FlatList, TextInput, TouchableOpacity, Text,
   KeyboardAvoidingView, Platform
@@ -10,13 +10,10 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 
 const getUsername = async (uid) => {
   if (!uid) return null;
-  // primært brugernavn
   const u = await get(ref(rtdb, `users/${uid}/username`));
   if (u.exists()) return u.val();
-  // fallback: headline fra CV
   const h = await get(ref(rtdb, `cvs/${uid}/headline`));
   if (h.exists()) return h.val();
-  // sidste fallback: uid
   return uid;
 };
 
@@ -33,7 +30,9 @@ export default function ChatScreen() {
   const [myName, setMyName] = useState("");
   const [otherName, setOtherName] = useState("");
 
-  // Hent navne én gang
+  const flatListRef = useRef(null);
+
+  // Hent navne én gang pr. deltagere
   useEffect(() => {
     (async () => {
       if (!uid || !otherUid) return;
@@ -48,16 +47,32 @@ export default function ChatScreen() {
     navigation.setOptions({ title: otherName || "Chat" });
   }, [navigation, otherName]);
 
-  // realtime stream af beskeder
+  // realtime stream af beskeder (dedup + reset ved chat-skift)
   useEffect(() => {
     if (!chatId) return;
+    setMsgs([]); // reset når man åbner anden chat
+
     const msgsRef = ref(rtdb, `messages/${chatId}`);
     const off = onChildAdded(msgsRef, (snap) => {
       const m = snap.val();
-      setMsgs((prev) => [...prev, { id: snap.key, ...m }]);
+      setMsgs((prev) => {
+        if (prev.some(x => x.id === snap.key)) return prev; // ✅ dedup
+        return [...prev, { id: snap.key, ...m }];
+      });
     });
+
     return () => off();
   }, [chatId]);
+
+  // Auto-scroll til bunden når der kommer nye beskeder
+  useEffect(() => {
+    if (!flatListRef.current || msgs.length === 0) return;
+    // lille timeout så layoutet er klar
+    const t = setTimeout(() => {
+      flatListRef.current?.scrollToEnd?.({ animated: true });
+    }, 50);
+    return () => clearTimeout(t);
+  }, [msgs.length]);
 
   // sørg for userChats-noder findes, inkl. navne
   useEffect(() => {
@@ -80,7 +95,7 @@ export default function ChatScreen() {
 
   const send = useCallback(async () => {
     const t = text.trim();
-    if (!t || !uid) return;
+    if (!t || !uid || !chatId) return;
     setText("");
 
     const msgRef = push(ref(rtdb, `messages/${chatId}`));
@@ -91,8 +106,9 @@ export default function ChatScreen() {
     });
 
     // opdater metadata på begge parter inkl. visningsnavne
-    const metaMe = { otherUid, otherUsername: otherName || otherUid, lastMessage: t, updatedAt: Date.now() };
-    const metaOther = { otherUid: uid, otherUsername: myName || uid, lastMessage: t, updatedAt: Date.now() };
+    const now = Date.now();
+    const metaMe = { otherUid, otherUsername: otherName || otherUid, lastMessage: t, updatedAt: now };
+    const metaOther = { otherUid: uid, otherUsername: myName || uid, lastMessage: t, updatedAt: now };
 
     await update(ref(rtdb, `userChats/${uid}/${chatId}`), metaMe);
     await update(ref(rtdb, `userChats/${otherUid}/${chatId}`), metaOther);
@@ -101,19 +117,17 @@ export default function ChatScreen() {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <FlatList
+        ref={flatListRef}
         style={{ flex: 1, padding: 12 }}
         data={[...msgs].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))}
-        keyExtractor={(m) => m.id}
+        keyExtractor={(m) => String(m.id)}            // ✅ stabil string key
         renderItem={({ item }) => {
           const mine = item.senderId === uid;
           const label = mine ? myName : otherName;
           return (
             <View style={{ marginVertical: 4, maxWidth: "85%", alignSelf: mine ? "flex-end" : "flex-start" }}>
               <Text style={{ fontSize: 12, color: "#666", marginBottom: 2 }}>{label}</Text>
-              <View style={{
-                backgroundColor: mine ? "#d1f7c4" : "#eee",
-                padding: 10, borderRadius: 12,
-              }}>
+              <View style={{ backgroundColor: mine ? "#d1f7c4" : "#eee", padding: 10, borderRadius: 12 }}>
                 <Text>{item.text}</Text>
               </View>
             </View>
@@ -128,6 +142,8 @@ export default function ChatScreen() {
           onChangeText={setText}
           placeholder="Skriv en besked…"
           style={{ flex: 1, padding: 12, borderWidth: 1, borderColor: "#ddd", borderRadius: 12, marginRight: 8 }}
+          onSubmitEditing={send}           // enter = send
+          returnKeyType="send"
         />
         <TouchableOpacity onPress={send} style={{ paddingHorizontal: 16, justifyContent: "center" }}>
           <Text style={{ fontWeight: "700" }}>Send</Text>
