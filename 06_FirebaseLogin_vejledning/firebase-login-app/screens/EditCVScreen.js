@@ -43,8 +43,7 @@ export default function EditCVScreen({ navigation }) {
     yearsExp, setYearsExp,
     availability, setAvailability,
     skills, setSkills,
-    languages, setLanguages,
-    salaryMin, setSalaryMin,
+    languages, setLanguages,    
     loading, saving, error, save,
   } = useUserCv(uid);
 
@@ -59,7 +58,6 @@ export default function EditCVScreen({ navigation }) {
       availability,
       age: age ? Number(age) : null,
       yearsExp: yearsExp ? Number(yearsExp) : null,
-      salaryMin: salaryMin ? Number(salaryMin) : null,
       skills: inputToArr(skills),
       languages: inputToArr(languages),
     };
@@ -80,7 +78,7 @@ export default function EditCVScreen({ navigation }) {
         </TouchableOpacity>
       ),
     });
-  }, [navigation, saving, loading, headline, text, photoUri, region, educationLevel, availability, age, yearsExp, salaryMin, skills, languages]);
+  }, [navigation, saving, loading, headline, text, photoUri, region, educationLevel, availability, age, yearsExp, skills, languages]);
 
   if (loading) return <Text style={{ padding: 16 }}>Henter…</Text>;
 
@@ -228,16 +226,6 @@ export default function EditCVScreen({ navigation }) {
           style={GlobalStyles.input}
           value={arrToInput(languages)}
           onChangeText={setLanguages}
-        />
-
-        {/* Løn */}
-        <Text style={{ fontWeight: "700", marginTop: 12 }}>Løn</Text>
-        <TextInput
-          placeholder="Ønsket min. løn (DKK/mdr)"
-          keyboardType="number-pad"
-          style={GlobalStyles.input}
-          value={salaryMin}
-          onChangeText={setSalaryMin}
         />
 
         {!!error && <Text style={{ color: "red", marginTop: 8 }}>{error}</Text>}

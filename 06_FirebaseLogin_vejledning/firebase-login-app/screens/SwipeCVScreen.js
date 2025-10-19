@@ -104,11 +104,7 @@ export default function SwipeCVScreen() {
         <Text style={{ fontSize: 16, color: "#fff" }}>🌍 {toLabel(item.languages)}</Text>
       ) : null}
 
-      {item.salaryMin ? (
-        <Text style={{ fontSize: 16, color: "#fff" }}>
-          💰 Ønsket min. løn: {formatDKK(item.salaryMin)} DKK/mdr
-        </Text>
-      ) : null}
+      
     </View>
   );
 
