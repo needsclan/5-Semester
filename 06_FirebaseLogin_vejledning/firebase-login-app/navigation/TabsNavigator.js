@@ -58,15 +58,11 @@ export default function TabsNavigator() {
   component={MessagesStack}
   options={{
     title: "Messages",
+    unmountOnBlur: true, // smider stacken væk ved tab-skift
     tabBarIcon: ({ color, size }) => (
       <Ionicons name="chatbubbles-outline" size={size} color={color} />
     ),
   }}
-  listeners={({ navigation }) => ({
-    tabPress: () => {
-      navigation.navigate("Messages", { screen: "ChatList" });
-    },
-  })}
 />
     </Tab.Navigator>
   );

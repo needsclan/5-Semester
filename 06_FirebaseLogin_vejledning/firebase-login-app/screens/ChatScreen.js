@@ -4,11 +4,12 @@ import {
   View, FlatList, TextInput, TouchableOpacity, Text,
   KeyboardAvoidingView, Platform
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { ref, onChildAdded, push, set, get, update, serverTimestamp } from "firebase/database";
 import { rtdb, auth } from "../database/database";
 import { useRoute, useNavigation } from "@react-navigation/native";
 
-// henter et visningsnavn for en given bruger
+// henter visningsnavn for en given bruger
 const getUsername = async (uid) => {
   if (!uid) return null;
   const u = await get(ref(rtdb, `users/${uid}/username`));
@@ -19,27 +20,20 @@ const getUsername = async (uid) => {
 };
 
 export default function ChatScreen() {
-  // navigation og parametre fra ruten
   const { params } = useRoute();
   const navigation = useNavigation();
 
-  // id for chatten og modpartens bruger id
   const chatId = params?.chatId;
   const otherUid = params?.otherUid;
-
-  // nuværende bruger id
   const uid = auth.currentUser?.uid;
 
-  // state for beskeder, input tekst og visningsnavne
   const [msgs, setMsgs] = useState([]);
   const [text, setText] = useState("");
   const [myName, setMyName] = useState("");
   const [otherName, setOtherName] = useState("");
-
-  // reference til FlatList for autoscroll
   const flatListRef = useRef(null);
 
-  // henter visningsnavne for begge parter
+  // henter navne
   useEffect(() => {
     (async () => {
       if (!uid || !otherUid) return;
@@ -49,45 +43,46 @@ export default function ChatScreen() {
     })();
   }, [uid, otherUid]);
 
-  // sætter skærmtitel til modpartens navn
+  // header med fast knap til ChatList
   useLayoutEffect(() => {
-    navigation.setOptions({ title: otherName || "Chat" });
+    navigation.setOptions({
+      title: otherName || "Chat",
+      headerLeft: () => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Messages", { screen: "ChatList" })}
+          style={{ paddingHorizontal: 8 }}
+        >
+          <Ionicons name="chevron-back" size={24} />
+        </TouchableOpacity>
+      ),
+    });
   }, [navigation, otherName]);
 
-  // realtime stream af beskeder for den valgte chat
+  // realtime stream af beskeder
   useEffect(() => {
     if (!chatId) return;
     setMsgs([]);
-
     const msgsRef = ref(rtdb, `messages/${chatId}`);
-    const unsubscribe = onChildAdded(msgsRef, (snap) => {
+    const unsub = onChildAdded(msgsRef, (snap) => {
       const m = snap.val();
-      setMsgs((prev) => {
-        if (prev.some(x => x.id === snap.key)) return prev;
-        return [...prev, { id: snap.key, ...m }];
-      });
+      setMsgs((prev) => (prev.some(x => x.id === snap.key) ? prev : [...prev, { id: snap.key, ...m }]));
     });
-
-    return () => unsubscribe();
+    return () => unsub();
   }, [chatId]);
 
-  // autoscroll til bunden når der kommer nye beskeder
+  // autoscroll
   useEffect(() => {
     if (!flatListRef.current || msgs.length === 0) return;
-    const t = setTimeout(() => {
-      flatListRef.current?.scrollToEnd?.({ animated: true });
-    }, 50);
+    const t = setTimeout(() => flatListRef.current?.scrollToEnd?.({ animated: true }), 50);
     return () => clearTimeout(t);
   }, [msgs.length]);
 
-  // sikrer at userChats noder findes for begge parter
+  // sørger for userChats findes for begge parter
   useEffect(() => {
     const init = async () => {
       if (!uid || !otherUid || !chatId) return;
-
       const myRef = ref(rtdb, `userChats/${uid}/${chatId}`);
       const otherRef = ref(rtdb, `userChats/${otherUid}/${chatId}`);
-
       const [mySnap, otherSnap] = await Promise.all([get(myRef), get(otherRef)]);
       if (!mySnap.exists()) {
         await set(myRef, { otherUid, otherUsername: otherName || otherUid, lastMessage: "", updatedAt: serverTimestamp() });
@@ -99,27 +94,20 @@ export default function ChatScreen() {
     init();
   }, [uid, otherUid, chatId, myName, otherName]);
 
-  // sender en tekstbesked og opdaterer metadata for begge parter
+  // sender besked
   const send = useCallback(async () => {
     const t = text.trim();
     if (!t || !uid || !chatId) return;
     setText("");
-
     const msgRef = push(ref(rtdb, `messages/${chatId}`));
-    await set(msgRef, {
-      text: t,
-      senderId: uid,
-      createdAt: serverTimestamp(),
-    });
-
+    await set(msgRef, { text: t, senderId: uid, createdAt: serverTimestamp() });
     const metaMe = { otherUid, otherUsername: otherName || otherUid, lastMessage: t, updatedAt: serverTimestamp() };
     const metaOther = { otherUid: uid, otherUsername: myName || uid, lastMessage: t, updatedAt: serverTimestamp() };
-
     await update(ref(rtdb, `userChats/${uid}/${chatId}`), metaMe);
     await update(ref(rtdb, `userChats/${otherUid}/${chatId}`), metaOther);
   }, [text, uid, otherUid, chatId, myName, otherName]);
 
-  // simpel chat ui med liste og composer
+  // ui
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <FlatList
