@@ -53,16 +53,21 @@ export default function TabsNavigator() {
       />
 
       {/* beskeder og chat */}
-      <Tab.Screen
-        name="Messages"
-        component={MessagesStack}
-        options={{
-          title: "Messages",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubbles-outline" size={size} color={color} />
-          ),
-        }}
-      />
+<Tab.Screen
+  name="Messages"
+  component={MessagesStack}
+  options={{
+    title: "Messages",
+    tabBarIcon: ({ color, size }) => (
+      <Ionicons name="chatbubbles-outline" size={size} color={color} />
+    ),
+  }}
+  listeners={({ navigation }) => ({
+    tabPress: () => {
+      navigation.navigate("Messages", { screen: "ChatList" });
+    },
+  })}
+/>
     </Tab.Navigator>
   );
 }
