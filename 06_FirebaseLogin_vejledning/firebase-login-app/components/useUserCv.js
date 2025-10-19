@@ -5,27 +5,27 @@ import { ref, update, get, child } from "firebase/database";
 import { ref as sref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export function useUserCv(uid) {
+  // status felter
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  // --- FELTER (inkl. headline) ---
+  // cv felter
   const [headline, setHeadline] = useState("");
   const [text, setText] = useState("");
   const [photoUri, setPhotoUri] = useState(null);
 
   const [region, setRegion] = useState("");
   const [educationLevel, setEducationLevel] = useState("");
-  const [age, setAge] = useState("");          // UI som string
+  const [age, setAge] = useState("");          // ui som tekst
   const [yearsExp, setYearsExp] = useState(""); 
   const [availability, setAvailability] = useState("");
 
-  // UI holder skills/languages som kommasepareret tekst
+  // ui holder disse som tekst
   const [skills, setSkills] = useState("");
   const [languages, setLanguages] = useState("");
-  const [salaryMin, setSalaryMin] = useState("");
 
-  // --- LOAD ---
+  // henter eksisterende cv data
   useEffect(() => {
     const load = async () => {
       if (!uid) return setLoading(false);
@@ -37,7 +37,7 @@ export function useUserCv(uid) {
           setHeadline(data.headline ?? "");
           setText(data.text ?? "");
 
-          // læs begge mulige feltnavne for billede
+          // læser både photoUrl og photoUri
           setPhotoUri(data.photoUrl ?? data.photoUri ?? null);
 
           setRegion(data.region ?? "");
@@ -46,13 +46,8 @@ export function useUserCv(uid) {
           setYearsExp(data.yearsExp != null ? String(data.yearsExp) : "");
           setAvailability(data.availability ?? "");
 
-          setSkills(
-            Array.isArray(data.skills) ? data.skills.join(", ") : (data.skills ?? "")
-          );
-          setLanguages(
-            Array.isArray(data.languages) ? data.languages.join(", ") : (data.languages ?? "")
-          );
-          setSalaryMin(data.salaryMin != null ? String(data.salaryMin) : "");
+          setSkills(Array.isArray(data.skills) ? data.skills.join(", ") : (data.skills ?? ""));
+          setLanguages(Array.isArray(data.languages) ? data.languages.join(", ") : (data.languages ?? ""));
         }
       } catch (e) {
         setError(e.message || "Kunne ikke hente CV");
@@ -63,7 +58,7 @@ export function useUserCv(uid) {
     load();
   }, [uid]);
 
-  // --- UPLOAD BILLEDE ---
+  // uploader billede og returnerer offentlig url
   const uploadImageAsync = useCallback(async (uri, userId) => {
     const res = await fetch(uri);
     const blob = await res.blob();
@@ -74,7 +69,7 @@ export function useUserCv(uid) {
     return await getDownloadURL(storageRef);
   }, []);
 
-  // --- SAVE (kan kaldes som save() eller save(payload)) ---
+  // gemmer cv data
   const save = useCallback(async (payload = {}) => {
     if (!uid) return;
 
@@ -82,7 +77,7 @@ export function useUserCv(uid) {
     setError(null);
 
     try {
-      // 1) billede
+      // billede håndtering
       let nextPhotoUrl = null;
       const src = payload.photoUri ?? photoUri;
       if (src?.startsWith?.("file://")) {
@@ -91,49 +86,38 @@ export function useUserCv(uid) {
         nextPhotoUrl = src;
       }
 
-      // 2) normalisering
+      // helper til arrays
       const parseArr = (v, fallbackText) => {
         if (Array.isArray(v)) return v;
         const textVal = typeof v === "string" ? v : fallbackText || "";
-        return textVal
-          .split(",")
-          .map(s => s.trim())
-          .filter(Boolean);
+        return textVal.split(",").map(s => s.trim()).filter(Boolean);
       };
 
+      // næste objekt som skrives
       const next = {
-        // tekstfelter
         headline: (payload.headline ?? headline ?? "").trim(),
         text: payload.text ?? text ?? "",
-
-        // billede -> skriv til photoUrl (Swipe læser det)
         photoUrl: nextPhotoUrl ?? (payload.photoUrl ?? null),
 
-        // søgefelter
         region: (payload.region ?? region) || null,
         educationLevel: (payload.educationLevel ?? educationLevel) || null,
         availability: (payload.availability ?? availability) || null,
 
         age: payload.age ?? (age ? Number(age) : null),
         yearsExp: payload.yearsExp ?? (yearsExp ? Number(yearsExp) : null),
-        salaryMin: payload.salaryMin ?? (salaryMin ? Number(salaryMin) : null),
 
-        skills: parseArr(payload.skills, skills).length
-          ? parseArr(payload.skills, skills)
-          : null,
-        languages: parseArr(payload.languages, languages).length
-          ? parseArr(payload.languages, languages)
-          : null,
+        skills: parseArr(payload.skills, skills).length ? parseArr(payload.skills, skills) : null,
+        languages: parseArr(payload.languages, languages).length ? parseArr(payload.languages, languages) : null,
 
         ts: Date.now(),
       };
 
-      // Fjern undefined (behold null — det sletter feltet i update)
+      // fjerner undefined værdier
       Object.keys(next).forEach((k) => {
         if (next[k] === undefined) delete next[k];
       });
 
-      // 3) skriv – update overskriver kun de nævnte felter
+      // skriver ændringer til databasen
       await update(ref(rtdb, `cvs/${uid}`), next);
 
     } catch (e) {
@@ -143,11 +127,11 @@ export function useUserCv(uid) {
     }
   }, [
     uid, headline, text, photoUri, region, educationLevel, availability,
-    age, yearsExp, salaryMin, skills, languages, uploadImageAsync
+    age, yearsExp, skills, languages, uploadImageAsync
   ]);
 
+  // eksporter state og actions
   return {
-    // state + setters
     headline, setHeadline,
     text, setText,
     photoUri, setPhotoUri,
@@ -158,9 +142,7 @@ export function useUserCv(uid) {
     availability, setAvailability,
     skills, setSkills,
     languages, setLanguages,
-    salaryMin, setSalaryMin,
 
-    // status + actions
     loading, saving, error, save,
   };
 }

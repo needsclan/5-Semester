@@ -17,13 +17,15 @@ import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 
-// Værdilister
+// lister til dropdown felter
 const DK_REGIONS = ["", "Hovedstaden", "Sjælland", "Syddanmark", "Midtjylland", "Nordjylland"];
 const EDU_LEVELS = ["", "Folkeskole", "Gymnasial", "Erhvervsuddannelse", "Bachelor", "Kandidat", "PhD"];
 const AVAIL = ["", "Fuldtid", "Deltid", "Freelance/Kontrakt", "Studiejob", "Praktik"];
 
-// vis arrays som kommasepareret tekst i inputs
+// helper til at vise array som tekst
 const arrToInput = (v) => (Array.isArray(v) ? v.join(", ") : v || "");
+
+// helper til at lave input tekst om til array
 const inputToArr = (s) =>
   (s || "")
     .split(",")
@@ -31,8 +33,10 @@ const inputToArr = (s) =>
     .filter(Boolean);
 
 export default function EditCVScreen({ navigation }) {
+  // aktuelt bruger id
   const uid = auth.currentUser?.uid ?? null;
 
+  // hook som henter og gemmer cv data
   const {
     headline, setHeadline,
     text, setText,
@@ -43,16 +47,16 @@ export default function EditCVScreen({ navigation }) {
     yearsExp, setYearsExp,
     availability, setAvailability,
     skills, setSkills,
-    languages, setLanguages,    
+    languages, setLanguages,
     loading, saving, error, save,
   } = useUserCv(uid);
 
-  // — Gem: normaliser og send til hook —
+  // gemmer cv efter normalisering af felter
   const onSave = () => {
     const payload = {
       headline: (headline || "").trim(),
       text,
-      photoUri, // hook uploader hvis file://, ellers gemmer url
+      photoUri,
       region,
       educationLevel,
       availability,
@@ -64,7 +68,7 @@ export default function EditCVScreen({ navigation }) {
     save(payload);
   };
 
-  // Header: lille "Gem" knap i højre side
+  // sætter header titel og gem knap
   useLayoutEffect(() => {
     navigation.setOptions({
       title: "Rediger CV",
@@ -72,17 +76,22 @@ export default function EditCVScreen({ navigation }) {
         <TouchableOpacity
           onPress={onSave}
           disabled={saving || loading}
+          accessibilityLabel="Gem CV"
           style={{ marginRight: 12, opacity: saving || loading ? 0.6 : 1 }}
         >
           <Text style={{ fontWeight: "700" }}>{saving ? "Gemmer…" : "Gem"}</Text>
         </TouchableOpacity>
       ),
     });
-  }, [navigation, saving, loading, headline, text, photoUri, region, educationLevel, availability, age, yearsExp, skills, languages]);
+  }, [
+    navigation, saving, loading,
+    headline, text, photoUri, region, educationLevel, availability, age, yearsExp, skills, languages
+  ]);
 
+  // viser simpel loader mens data hentes
   if (loading) return <Text style={{ padding: 16 }}>Henter…</Text>;
 
-  // — Billedevalg via ImagePicker —
+  // vælger billede via kamera eller bibliotek
   const chooseImage = () => {
     Alert.alert("Profilbillede", "Vælg hvordan du vil tilføje et billede", [
       { text: "Kamera", onPress: openCamera },
@@ -91,6 +100,7 @@ export default function EditCVScreen({ navigation }) {
     ]);
   };
 
+  // åbner kamera og sætter valgt billede
   const openCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
@@ -101,6 +111,7 @@ export default function EditCVScreen({ navigation }) {
     if (!result.canceled) setPhotoUri(result.assets[0].uri);
   };
 
+  // åbner galleri og sætter valgt billede
   const openGallery = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -111,6 +122,7 @@ export default function EditCVScreen({ navigation }) {
     if (!result.canceled) setPhotoUri(result.assets[0].uri);
   };
 
+  // hovedlayout med formular felter
   return (
     <KeyboardAvoidingView
       style={GlobalStyles.container}
@@ -121,9 +133,9 @@ export default function EditCVScreen({ navigation }) {
         contentContainerStyle={GlobalStyles.scrollContainer}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Topkort med billede + headline */}
+        {/* top med profilbillede og overskrift */}
         <View style={{ alignItems: "center", marginBottom: 12 }}>
-          <TouchableOpacity onPress={chooseImage}>
+          <TouchableOpacity onPress={chooseImage} accessibilityLabel="Vælg profilbillede">
             {photoUri ? (
               <Image
                 source={{ uri: photoUri }}
@@ -147,26 +159,29 @@ export default function EditCVScreen({ navigation }) {
           </TouchableOpacity>
 
           <TextInput
-            placeholder="Headline (fx: Frontend udvikler, Dataanalytiker)"
+            placeholder="Headline fx Frontend udvikler eller Dataanalytiker"
             placeholderTextColor="#888"
             style={[GlobalStyles.input, { width: "100%" }]}
             value={headline}
             onChangeText={setHeadline}
+            autoCapitalize="sentences"
+            maxLength={120}
           />
         </View>
 
-        {/* Fritekst / summary */}
+        {/* profil tekst */}
         <Text style={{ fontWeight: "700", marginBottom: 6 }}>Profil</Text>
         <TextInput
-          placeholder="Kort profil/summary…"
+          placeholder="Kort profil eller summary"
           placeholderTextColor="#888"
           style={[GlobalStyles.input, { height: 160, textAlignVertical: "top" }]}
           value={text}
           onChangeText={setText}
           multiline
+          maxLength={1500}
         />
 
-        {/* Region */}
+        {/* region valg */}
         <Text style={{ fontWeight: "700", marginTop: 12 }}>Region</Text>
         <View style={[GlobalStyles.input, { padding: 0 }]}>
           <Picker selectedValue={region} onValueChange={setRegion}>
@@ -176,7 +191,7 @@ export default function EditCVScreen({ navigation }) {
           </Picker>
         </View>
 
-        {/* Uddannelse */}
+        {/* uddannelsesniveau valg */}
         <Text style={{ fontWeight: "700", marginTop: 12 }}>Uddannelsesniveau</Text>
         <View style={[GlobalStyles.input, { padding: 0 }]}>
           <Picker selectedValue={educationLevel} onValueChange={setEducationLevel}>
@@ -186,24 +201,26 @@ export default function EditCVScreen({ navigation }) {
           </Picker>
         </View>
 
-        {/* Alder + erfaring */}
-        <Text style={{ fontWeight: "700", marginTop: 12 }}>Alder & erfaring</Text>
+        {/* alder og erfaring i år */}
+        <Text style={{ fontWeight: "700", marginTop: 12 }}>Alder og erfaring</Text>
         <TextInput
-          placeholder="Alder (år)"
+          placeholder="Alder i år"
           keyboardType="number-pad"
           style={GlobalStyles.input}
           value={age}
           onChangeText={setAge}
+          maxLength={3}
         />
         <TextInput
-          placeholder="Erfaringsår (fx 3)"
+          placeholder="Erfaringsår for eksempel 3"
           keyboardType="number-pad"
           style={GlobalStyles.input}
           value={yearsExp}
           onChangeText={setYearsExp}
+          maxLength={2}
         />
 
-        {/* Tilgængelighed */}
+        {/* tilgængelighed valg */}
         <Text style={{ fontWeight: "700", marginTop: 12 }}>Tilgængelighed</Text>
         <View style={[GlobalStyles.input, { padding: 0 }]}>
           <Picker selectedValue={availability} onValueChange={setAvailability}>
@@ -213,24 +230,26 @@ export default function EditCVScreen({ navigation }) {
           </Picker>
         </View>
 
-        {/* Skills + sprog */}
-        <Text style={{ fontWeight: "700", marginTop: 12 }}>Skills & sprog</Text>
+        {/* skills og sprog som kommasepareret tekst */}
+        <Text style={{ fontWeight: "700", marginTop: 12 }}>Skills og sprog</Text>
         <TextInput
-          placeholder="Skills (kommasepareret, fx: JavaScript, React, Firebase)"
+          placeholder="Skills kommasepareret for eksempel JavaScript, React, Firebase"
           style={GlobalStyles.input}
           value={arrToInput(skills)}
           onChangeText={setSkills}
+          autoCapitalize="none"
         />
         <TextInput
-          placeholder="Sprog (kommasepareret, fx: Dansk, Engelsk)"
+          placeholder="Sprog kommasepareret for eksempel Dansk, Engelsk"
           style={GlobalStyles.input}
           value={arrToInput(languages)}
           onChangeText={setLanguages}
         />
 
+        {/* fejlmeddelelse fra hook vises her */}
         {!!error && <Text style={{ color: "red", marginTop: 8 }}>{error}</Text>}
 
-        {/* Ingen stor bundknap – “Gem” ligger i headeren */}
+        {/* ekstra bundplads da gem knappen ligger i header */}
         <View style={{ height: 24 }} />
       </ScrollView>
     </KeyboardAvoidingView>
